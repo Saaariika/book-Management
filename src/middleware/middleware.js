@@ -18,7 +18,7 @@ const authentication=async function(req,res,next){
         if(Date.now>decodedToken.exp*1000){
             return res.status(401).send({message:"session expired",status:false})
         }
-        req.userId=decodedToken.userId;
+        req.userId=decodedToken.userId;//iska
         //console.log(req.userId)
         next()
         

@@ -119,12 +119,12 @@ const loginUser = async function (req, res) {
         }
 
 
-        if(userData.password!=req.body.password){
+        if(userData.password!=req.body.password){//??
             return res.status(400).send({ message: "password is incorrect", status: false })
         }
         
         const token = jwt.sign({
-            userId: userData._id.toString(),
+            userId: userData._id.toString(),// iska mtlb
 
         },
             "village-binjhol",

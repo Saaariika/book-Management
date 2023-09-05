@@ -85,10 +85,10 @@ const createBook = async function (req, res) {
 
 const filterBook = async function (req, res) {
   try {
-    let query = req.query
+    let query = req.query//iska
 
     let { userId, category, subcategory } = query
-    if (userId != req.userId) {
+    if (userId != req.userId) {//??
       return res.status(401).send({ message: "userId is not authorised", status: false })
     }
     let arr = Object.keys(query)
@@ -112,7 +112,7 @@ const filterBook = async function (req, res) {
     }
 
     if (arr.length != 0) {
-      let filterData = await bookModel.find({ $and: [{ isDeleted: false }, query] }).select({
+      let filterData = await bookModel.find({ $and: [{ isDeleted: false }, query] }).select({//doubt
         _id: 1,
         title: 1,
         userId: 1,
@@ -223,4 +223,41 @@ const updateBook = async function (req, res) {
   catch (err) { return res.status(500).send({ Error: "internal server error", message: err.message, status: false }) }
 }
 
-module.exports = { createBook, filterBook, getBook, updateBook }
+
+const deleteBook=async function(req,res){
+  try{
+    const bookId = req.params.bookId
+    if (bookId) {
+      if (mongoose.Types.ObjectId.isValid(bookId) == false) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Invalid bookId" });
+      }
+    }
+    const book = await bookModel.findOne({ _id: bookId, isDeleted: false })
+    if (!book) {
+      return res.status(404).send({ message: "book not found", status: false })
+    }
+    if (req.userId != book.userId.toString()) {
+      return res.status(401).send({ message: "user not authorised to delete book", status: false })
+    }
+    
+    const deletedBook=await bookModel.findByIdAndUpdate({_id:bookId},{isDeleted:true,deletedAt:new Date().toISOString()},{new:true})
+    .lean()
+    console.log(deletedBook)
+    const deleteReviewOfBook = await reviewModel.updateMany(
+      { bookId: bookId, isDeleted: false },
+      { $set: { isDeleted: true, deletedAt: new Date().toISOString() } }
+    );
+    
+    console.log(deleteReviewOfBook)
+
+    deletedBook.reviewData=deleteReviewOfBook
+
+    return res.status(200).send({message:"book deleted successfully",status:true,data:deletedBook})
+  }
+  catch (err) { return res.status(500).send({ Error: "internal server error", message: err.message, status: false }) }
+
+}
+
+module.exports = { createBook, filterBook, getBook, updateBook,deleteBook }
